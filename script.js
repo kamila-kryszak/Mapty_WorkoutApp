@@ -75,7 +75,14 @@ class App {
     #mapEvent;
     #workouts = [];
     constructor() {
+        // getting user's position 
         this._getPosition();
+
+        // getting data from local storage
+        this._getLocalStorage();
+
+
+        // attaching event handlers
         form.addEventListener('submit', this._newWorkout.bind(this));
         inputType.addEventListener('change', this._toggleElevationField.bind(this)); // to double check!
         containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
@@ -106,6 +113,10 @@ class App {
             
             // handling clicks on map
                 this.#map.on('click', this._showForm.bind(this));
+
+                this.#workouts.forEach(work => {
+                    this._renderWorkoutMarker(work);
+                })
         }
             
 
@@ -188,7 +199,8 @@ class App {
             // hiding form and clearing input fields
             this._hideForm();
             
-        
+            //setting local storage to all workouts
+            this._setLocalStorage();
             
         }
 
@@ -262,7 +274,6 @@ class App {
             if (!workoutEl) return;
 
             const workout = this.#workouts.find( work => work.id === workoutEl.dataset.id);
-            console.log(workout);
 
             this.#map.setView(workout.coords, this.#mapZoomLevel, {
                 animate: true,
@@ -272,7 +283,27 @@ class App {
             });
 
             // using the public interface
-            workout.click();
+            // workout.click();
+        }
+
+        _setLocalStorage() {
+            localStorage.setItem('workouts', JSON.stringify(this.#workouts));
+        }
+
+        _getLocalStorage() {
+            const data = JSON.parse(localStorage.getItem('workouts'));
+
+            if (!data) return;
+            this.#workouts = data;
+
+            this.#workouts.forEach(work => {
+                this._renderWorkout(work);
+            })
+        }
+
+        reset() {
+            localStorage.removeItem('workouts');
+            location.reload();
         }
 
 }
